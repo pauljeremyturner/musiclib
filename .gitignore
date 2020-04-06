@@ -1,3 +1,4 @@
 .idea/
+cmd/main-module/__debug_bin
 /cmd/main-module/pkg/
 /cmd/main-module/pkg/mod/
