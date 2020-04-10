@@ -39,11 +39,8 @@ func (r *metaDataState) ProcessMetadata() []Track {
 	_ = filepath.Walk(r.path, r.visit)
 
 	go r.join()
-
 	r.waitGroupIn.Wait()
-
 	close(r.trackChan)
-
 	r.waitGroupOut.Wait()
 
 	return r.tracks

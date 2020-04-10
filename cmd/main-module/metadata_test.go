@@ -12,7 +12,7 @@ var (
 	_, b, _, _ = runtime.Caller(0)
 
 	// 'testdata'' folder of this project
-	TestDataDirectory = filepath.Join(filepath.Dir(b), "..", "testdata")
+	TestDataDirectory = filepath.Join(filepath.Dir(b), "testdata")
 	testTracks        []Track
 
 	flacTrack Track

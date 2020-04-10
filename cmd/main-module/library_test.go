@@ -12,6 +12,7 @@ type mockMetaDataState struct {
 }
 
 var md MetaData
+var lib Library
 
 func (m mockMetaDataState) ProcessMetadata() []Track {
 
@@ -42,6 +43,7 @@ func newMockMetaData() MetaData {
 
 func setupLibraryTest() {
 	md = newMockMetaData()
+	lib = NewLibrary()
 }
 
 func TestOrganizeIntoAlbums(t *testing.T) {
