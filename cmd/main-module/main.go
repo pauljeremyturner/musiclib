@@ -8,6 +8,5 @@ func main() {
 
 	runtime.GOMAXPROCS(4)
 
-	RestRouter()
-
+	NewRestRouter().RestRouter()
 }
