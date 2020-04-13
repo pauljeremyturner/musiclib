@@ -2,6 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/pauljeremyturner/musiclib/model"
+	"github.com/pauljeremyturner/musiclib/processor"
+	"github.com/pauljeremyturner/musiclib/reader"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,15 +14,21 @@ import (
 )
 
 type restRouterState struct {
-	lib Library
+	mdr reader.MetaDataReader
+	mdp processor.MetaDataProcessor
+	lib model.Library
 }
 
-func NewRestRouter() RestRouter {
-	return &restRouterState{}
+func NewRestRouter(inMd reader.MetaDataReader, inMdp processor.MetaDataProcessor) RestRouter {
+	return &restRouterState{
+		mdr: inMd,
+		mdp: inMdp,
+	}
 }
 
 type RestRouter interface {
 	RestRouter()
+	LoadLibrary(writer http.ResponseWriter, request *http.Request)
 }
 
 func (r *restRouterState) RestRouter() {
@@ -49,7 +58,7 @@ func (r *restRouterState) RestRouter() {
 		Schemes("http")
 
 	libraryRouter.
-		HandleFunc("/", r.loadLibrary).
+		HandleFunc("/", r.LoadLibrary).
 		Methods("POST").
 		Schemes("http")
 
@@ -69,9 +78,9 @@ func (r *restRouterState) getLibrary(writer http.ResponseWriter, request *http.R
 	writer.Write(bytes)
 }
 
-func (r *restRouterState) loadLibrary(writer http.ResponseWriter, request *http.Request) {
+func (r *restRouterState) LoadLibrary(writer http.ResponseWriter, request *http.Request) {
 
-	var requestBody LibraryRequest
+	var requestBody model.LibraryRequest
 
 	err := func() error {
 		bytes, err1 := ioutil.ReadAll(request.Body)
@@ -92,9 +101,13 @@ func (r *restRouterState) loadLibrary(writer http.ResponseWriter, request *http.
 	} else {
 		log.Printf("Loading music from %s", requestBody.Path)
 
-		md := NewMetaData(requestBody.Path)
-		r.lib = NewLibrary()
-		r.lib.LoadFromPath(md)
+
+		tracks := r.mdr.ReadMetaData(requestBody.Path)
+
+		library := r.mdp.TransformMetaData(tracks)
+
+		r.lib = library
+
 		writer.WriteHeader(http.StatusAccepted)
 	}
 }
