@@ -1,5 +1,10 @@
 package main
 /*
+yes unfinished.  my intention here is to pickup the bytes sent to the writer, transform to json and compare with expected json
+
+i am nearly there...
+
+
 import (
 	"net/http"
 	"path/filepath"
