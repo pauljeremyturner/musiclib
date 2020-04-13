@@ -1,29 +1,27 @@
-package main
+package processor
 
 import (
 	"fmt"
+	"github.com/pauljeremyturner/musiclib/model"
 	"gotest.tools/assert"
 	"strconv"
 	"testing"
 )
 
-type mockMetaDataState struct {
-	tracks []Track
-}
+var testTracks []model.Track
+var mdp MetaDataProcessor
+var library model.Library
 
-var md MetaData
-var lib Library
+func getTestTracks() []model.Track {
 
-func (m mockMetaDataState) ProcessMetadata() []Track {
-
-	tracks := []Track{}
+	var tracks []model.Track
 
 	for i := 0; i < 6; i++ {
-		t := Track{
+		t := model.Track{
 			Id:          int32(i),
 			Title:       "title" + strconv.Itoa(i),
 			Artist:      "artist",
-			TrackNumber: TrackNumber{i, 6},
+			TrackNumber: model.TrackNumber{i, 6},
 			Album:       "album",
 			AlbumArtist: "album-artist",
 			Composer:    "composer",
@@ -35,23 +33,22 @@ func (m mockMetaDataState) ProcessMetadata() []Track {
 	return tracks
 }
 
-func newMockMetaData() MetaData {
-	return &mockMetaDataState{
-		tracks: []Track{},
-	}
-}
 
 func setupLibraryTest() {
-	md = newMockMetaData()
-	lib = NewLibrary()
+	testTracks = getTestTracks()
+	mdp = NewMetaDataProcessor()
+	library = mdp.TransformMetaData(testTracks)
+}
+
+func TestMain(m *testing.M) {
+	setupLibraryTest()
+
+	m.Run()
 }
 
 func TestOrganizeIntoAlbums(t *testing.T) {
-	setupLibraryTest()
 
-	lib.LoadFromPath(md)
-
-	album := lib.AlbumsByTitle["album"]
+	album := library.AlbumsByTitle["album"]
 
 	for i, track := range album.Tracks {
 		assert.Equal(t, "title"+strconv.Itoa(i), track.Title)
@@ -59,11 +56,8 @@ func TestOrganizeIntoAlbums(t *testing.T) {
 }
 
 func TestOrganizeByTrackTitle(t *testing.T) {
-	setupLibraryTest()
 
-	lib.LoadFromPath(md)
-
-	for k, v := range lib.TracksByTitle {
+	for k, v := range library.TracksByTitle {
 		assert.Equal(t, k, v.Title)
 	}
 }

@@ -1,6 +1,7 @@
-package main
+package reader
 
 import (
+	"github.com/pauljeremyturner/musiclib/model"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -12,22 +13,31 @@ var (
 	_, b, _, _ = runtime.Caller(0)
 
 	// 'testdata'' folder of this project
-	TestDataDirectory = filepath.Join(filepath.Dir(b), "testdata")
-	testTracks        []Track
+	testDataDirectory = filepath.Join(filepath.Dir(b), "..", "testdata")
+	testTracks        []model.Track
+	library           model.Library
 
-	flacTrack Track
-	mp3Track  Track
-	oggTrack  Track
+	flacTrack model.Track
+	mp3Track  model.Track
+	oggTrack  model.Track
 )
+
+func TestMain(m *testing.M) {
+	setupMetaDataTest()
+
+	m.Run()
+}
 
 func setupMetaDataTest() {
 
-	md := NewMetaData(TestDataDirectory)
-	testTracks = md.ProcessMetadata()
+	md := NewMetaDataReader()
 
-	titlemap := make(map[string]Track)
-	for _, track := range testTracks {
-		titlemap[track.Title] = track
+	testTracks = md.ReadMetaData(testDataDirectory)
+
+	titlemap := make(map[string]model.Track)
+
+	for _, t := range testTracks {
+		titlemap[t.Title] = t
 	}
 
 	flacTrack = titlemap["flac title"]
@@ -38,8 +48,6 @@ func setupMetaDataTest() {
 
 func TestShouldReadArtistMetadataFromFiles(t *testing.T) {
 
-	setupMetaDataTest()
-
 	assert.Equal(t, flacTrack.Artist, "flac artist")
 	assert.Equal(t, mp3Track.Artist, "mp3 artist")
 	assert.Equal(t, oggTrack.Artist, "ogg artist")
@@ -48,16 +56,12 @@ func TestShouldReadArtistMetadataFromFiles(t *testing.T) {
 
 func TestShouldReadATitleMetadataFromFiles(t *testing.T) {
 
-	setupMetaDataTest()
-
 	assert.Equal(t, flacTrack.Title, "flac title")
 	assert.Equal(t, mp3Track.Title, "mp3 title")
 	assert.Equal(t, oggTrack.Title, "ogg title")
 }
 
 func TestShouldReadAAlbumMetadataFromFiles(t *testing.T) {
-
-	setupMetaDataTest()
 
 	assert.Equal(t, flacTrack.Album, "album")
 	assert.Equal(t, mp3Track.Album, "album")
@@ -66,9 +70,8 @@ func TestShouldReadAAlbumMetadataFromFiles(t *testing.T) {
 
 func TestShouldReadATrackMetadataFromFiles(t *testing.T) {
 
-	setupMetaDataTest()
-
 	assert.Equal(t, flacTrack.TrackNumber.TrackIndex, 1)
 	assert.Equal(t, mp3Track.TrackNumber.TrackIndex, 2)
 	assert.Equal(t, oggTrack.TrackNumber.TrackIndex, 3)
 }
+

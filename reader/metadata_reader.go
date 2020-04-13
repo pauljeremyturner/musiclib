@@ -1,7 +1,8 @@
-package main
+package reader
 
 import (
 	"github.com/dhowden/tag"
+	"github.com/pauljeremyturner/musiclib/model"
 	"io/ioutil"
 	"log"
 	"os"
@@ -12,31 +13,30 @@ import (
 )
 
 type metaDataState struct {
-	tracks       []Track
-	trackChan    chan []Track
+	tracks       []model.Track
+	trackChan    chan []model.Track
 	waitGroupIn  *sync.WaitGroup
 	waitGroupOut *sync.WaitGroup
-	path         string
 	id           int32
 }
 
-type MetaData interface {
-	ProcessMetadata() []Track
+type MetaDataReader interface {
+	ReadMetaData(path string) []model.Track
 }
 
-func NewMetaData(inPath string) MetaData {
+func NewMetaDataReader() MetaDataReader {
 	return &metaDataState{
-		tracks:       []Track{},
-		trackChan:    make(chan []Track, 100),
+		tracks:       []model.Track{},
+		trackChan:    make(chan []model.Track, 100),
 		waitGroupIn:  &sync.WaitGroup{},
 		waitGroupOut: &sync.WaitGroup{},
-		path:         inPath,
 	}
 }
 
-func (r *metaDataState) ProcessMetadata() []Track {
 
-	_ = filepath.Walk(r.path, r.visit)
+func (r *metaDataState) ReadMetaData(path string) []model.Track  {
+
+	_ = filepath.Walk(path, r.visit)
 
 	go r.join()
 	r.waitGroupIn.Wait()
@@ -73,7 +73,7 @@ func (r *metaDataState) fork(path string) {
 
 	defer r.waitGroupIn.Done()
 
-	ts := []Track{}
+	ts := []model.Track{}
 
 	for _, fileinfo := range files {
 		filename := filepath.Join(path, fileinfo.Name())
@@ -93,9 +93,9 @@ func (r *metaDataState) fork(path string) {
 
 			trackIndex, trackTotal := m.Track()
 
-			t := Track{
+			t := model.Track{
 				Id: atomic.AddInt32(&r.id, 1), Title: m.Title(), Album: m.Album(), Artist: m.Artist(),
-				TrackNumber: TrackNumber{trackIndex, trackTotal},
+				TrackNumber: model.TrackNumber{trackIndex, trackTotal},
 				AlbumArtist: m.AlbumArtist(), Composer: m.Composer(), FilePath: filepath.Join(path, filename),
 			}
 
