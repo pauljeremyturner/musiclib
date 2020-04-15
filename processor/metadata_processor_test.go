@@ -18,7 +18,7 @@ func getTestTracks() []model.Track {
 
 	for i := 0; i < 6; i++ {
 		t := model.Track{
-			Id:          int32(i),
+			Id:          int(i),
 			Title:       "title" + strconv.Itoa(i),
 			Artist:      "artist",
 			TrackNumber: model.TrackNumber{i, 6},

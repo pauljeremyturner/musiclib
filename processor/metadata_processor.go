@@ -29,7 +29,7 @@ func (r metaDataProcessorState) TransformMetaData(tracks []model.Track) model.Li
 		lib.TracksById[t.Id] = t
 	}
 
-	var id int32 = 0
+	var id int = 0
 
 	for k, v := range albumTrackMap {
 		artistSet := make(map[string]bool)
