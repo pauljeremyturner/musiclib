@@ -29,6 +29,8 @@ func NewRestRouter(inMd reader.MetaDataReader, inMdp processor.MetaDataProcessor
 type RestRouter interface {
 	RestRouter()
 	LoadLibrary(writer http.ResponseWriter, request *http.Request)
+	GetLibrary(writer http.ResponseWriter, request *http.Request)
+	GetAlbum(writer http.ResponseWriter, request *http.Request)
 }
 
 func (r *restRouterState) RestRouter() {
@@ -40,20 +42,11 @@ func (r *restRouterState) RestRouter() {
 	libraryRouter := router.PathPrefix("/librarys").Subrouter()
 
 	albumRouter.
-		HandleFunc("/", r.allAlbums).
-		Methods("GET").
-		Schemes("http")
-
-	albumRouter.
-		HandleFunc("/{albumid}", r.getAlbum).
+		HandleFunc("/{albumid}", r.GetAlbum).
 		Methods("GET").Schemes("http")
 
-	trackRouter.HandleFunc("/", allTracks).
-		Methods("GET").
-		Schemes("http")
-
 	trackRouter.
-		HandleFunc("/{trackid}", r.getTrack).
+		HandleFunc("/{trackid}", r.GetTrack).
 		Methods("GET").
 		Schemes("http")
 
@@ -63,14 +56,14 @@ func (r *restRouterState) RestRouter() {
 		Schemes("http")
 
 	libraryRouter.
-		HandleFunc("/", r.getLibrary).
+		HandleFunc("/", r.GetLibrary).
 		Methods("GET").
 		Schemes("http")
 
 	http.ListenAndServe(":8080", router)
 }
 
-func (r *restRouterState) getLibrary(writer http.ResponseWriter, request *http.Request) {
+func (r *restRouterState) GetLibrary(writer http.ResponseWriter, request *http.Request) {
 	bytes, _ := json.Marshal(r.lib)
 
 	writer.Header().Add("Content-Type", "application/json")
@@ -112,7 +105,7 @@ func (r *restRouterState) LoadLibrary(writer http.ResponseWriter, request *http.
 	}
 }
 
-func (r *restRouterState) getTrack(writer http.ResponseWriter, request *http.Request) {
+func (r *restRouterState) GetTrack(writer http.ResponseWriter, request *http.Request) {
 	params := mux.Vars(request)
 	i, paramErr := strconv.Atoi(params["trackid"])
 
@@ -121,7 +114,7 @@ func (r *restRouterState) getTrack(writer http.ResponseWriter, request *http.Req
 		return
 	}
 
-	albumId := int32(i)
+	albumId := int(i)
 	if album, ok := r.lib.AlbumsById[albumId]; ok {
 		bytes, err := json.Marshal(album)
 
@@ -137,11 +130,7 @@ func (r *restRouterState) getTrack(writer http.ResponseWriter, request *http.Req
 	}
 }
 
-func allTracks(writer http.ResponseWriter, request *http.Request) {
-	//todo
-}
-
-func (r *restRouterState) getAlbum(writer http.ResponseWriter, request *http.Request) {
+func (r *restRouterState) GetAlbum(writer http.ResponseWriter, request *http.Request) {
 	params := mux.Vars(request)
 	i, paramErr := strconv.Atoi(params["albumid"])
 
@@ -150,7 +139,7 @@ func (r *restRouterState) getAlbum(writer http.ResponseWriter, request *http.Req
 		return
 	}
 
-	trackId := int32(i)
+	trackId := int(i)
 	if track, ok := r.lib.TracksById[trackId]; ok {
 		bytes, err := json.Marshal(track)
 
@@ -164,8 +153,4 @@ func (r *restRouterState) getAlbum(writer http.ResponseWriter, request *http.Req
 	} else {
 		writer.WriteHeader(http.StatusNotFound)
 	}
-}
-
-func (r *restRouterState) allAlbums(writer http.ResponseWriter, request *http.Request) {
-	//todo
 }

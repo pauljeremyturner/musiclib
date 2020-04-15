@@ -2,11 +2,10 @@ package reader
 
 import (
 	"github.com/pauljeremyturner/musiclib/model"
+	"gotest.tools/v3/assert"
 	"path/filepath"
 	"runtime"
 	"testing"
-
-	"gotest.tools/assert"
 )
 
 var (

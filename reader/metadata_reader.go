@@ -17,7 +17,7 @@ type metaDataState struct {
 	trackChan    chan []model.Track
 	waitGroupIn  *sync.WaitGroup
 	waitGroupOut *sync.WaitGroup
-	id           int32
+	id           uint32
 }
 
 type MetaDataReader interface {
@@ -93,8 +93,11 @@ func (r *metaDataState) fork(path string) {
 
 			trackIndex, trackTotal := m.Track()
 
+			atomic.AddUint32(&r.id, 1)
+			id_int := int(r.id)
+
 			t := model.Track{
-				Id: atomic.AddInt32(&r.id, 1), Title: m.Title(), Album: m.Album(), Artist: m.Artist(),
+				Id: id_int, Title: m.Title(), Album: m.Album(), Artist: m.Artist(),
 				TrackNumber: model.TrackNumber{trackIndex, trackTotal},
 				AlbumArtist: m.AlbumArtist(), Composer: m.Composer(), FilePath: filepath.Join(path, filename),
 			}
