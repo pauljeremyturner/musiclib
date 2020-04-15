@@ -4,6 +4,22 @@ Utility to convert a music folder to a json file based on the track metadata of 
 
 The music library can be queried via a ReST api.
 
+This is my first golang project.  I wanted to use what I have learned including 
+
+- interfaces
+- unit testing
+- encapsulation 
+- simple rest service via gorilla mux
+- some of the core libraries
+- exception handling
+- goroutines and channels
+- modules
+- the go tooling for test covereage
+- a dockerised go app
+
+It's not finished, I would like to add integration testing via running a docker compose of the app and sending it web requests.  I think the types can be tidied: there probably isn't any need for the metadata processor- it could all go in to the constructor of Library, I probably ignore some errors coming out of I/O calls and surely there is a framework for mocking http requests etc rather than hand coding mock reqtests and output buffers.  
+
+
 # How does it work?
 This is a *fork-join* process.
 fork - for each directory, extract the music metadata
