@@ -1,27 +1,26 @@
-package processor
+package main
 
 import (
 	"fmt"
-	"github.com/pauljeremyturner/musiclib/model"
 	"gotest.tools/assert"
 	"strconv"
 	"testing"
 )
 
-var testTracks []model.Track
+var testTracks []Track
 var mdp MetaDataProcessor
-var library model.Library
+var library Library
 
-func getTestTracks() []model.Track {
+func getTestTracks() []Track {
 
-	var tracks []model.Track
+	var tracks []Track
 
 	for i := 0; i < 6; i++ {
-		t := model.Track{
+		t := Track{
 			Id:          int(i),
 			Title:       "title" + strconv.Itoa(i),
 			Artist:      "artist",
-			TrackNumber: model.TrackNumber{i, 6},
+			TrackNumber: TrackNumber{i, 6},
 			Album:       "album",
 			AlbumArtist: "album-artist",
 			Composer:    "composer",
@@ -32,7 +31,6 @@ func getTestTracks() []model.Track {
 
 	return tracks
 }
-
 
 func setupLibraryTest() {
 	testTracks = getTestTracks()

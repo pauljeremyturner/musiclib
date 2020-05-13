@@ -2,9 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/pauljeremyturner/musiclib/model"
-	"github.com/pauljeremyturner/musiclib/processor"
-	"github.com/pauljeremyturner/musiclib/reader"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,12 +11,12 @@ import (
 )
 
 type restRouterState struct {
-	mdr reader.MetaDataReader
-	mdp processor.MetaDataProcessor
-	lib model.Library
+	mdr MetaDataReader
+	mdp MetaDataProcessor
+	lib Library
 }
 
-func NewRestRouter(inMd reader.MetaDataReader, inMdp processor.MetaDataProcessor) RestRouter {
+func NewRestRouter(inMd MetaDataReader, inMdp MetaDataProcessor) RestRouter {
 	return &restRouterState{
 		mdr: inMd,
 		mdp: inMdp,
@@ -73,7 +70,7 @@ func (r *restRouterState) GetLibrary(writer http.ResponseWriter, request *http.R
 
 func (r *restRouterState) LoadLibrary(writer http.ResponseWriter, request *http.Request) {
 
-	var requestBody model.LibraryRequest
+	var requestBody LibraryRequest
 
 	err := func() error {
 		bytes, err1 := ioutil.ReadAll(request.Body)
@@ -93,7 +90,6 @@ func (r *restRouterState) LoadLibrary(writer http.ResponseWriter, request *http.
 		writer.WriteHeader(http.StatusInternalServerError)
 	} else {
 		log.Printf("Loading music from %s", requestBody.Path)
-
 
 		tracks := r.mdr.ReadMetaData(requestBody.Path)
 

@@ -1,25 +1,24 @@
-package processor
+package main
 
 import (
-	"github.com/pauljeremyturner/musiclib/model"
 	"log"
 )
 
 type MetaDataProcessor interface {
-	TransformMetaData(inTracks []model.Track) model.Library
+	TransformMetaData(inTracks []Track) Library
 }
 
-type metaDataProcessorState struct {}
+type metaDataProcessorState struct{}
 
 func NewMetaDataProcessor() MetaDataProcessor {
 	return metaDataProcessorState{}
 }
 
-func (r metaDataProcessorState) TransformMetaData(tracks []model.Track) model.Library {
+func (r metaDataProcessorState) TransformMetaData(tracks []Track) Library {
 
-	lib := model.NewLibrary()
+	lib := NewLibrary()
 
-	albumTrackMap := make(map[string][]model.Track)
+	albumTrackMap := make(map[string][]Track)
 
 	for _, t := range tracks {
 		album := t.Album
@@ -40,7 +39,7 @@ func (r metaDataProcessorState) TransformMetaData(tracks []model.Track) model.Li
 		for artist := range artistSet {
 			combinedArtist = combinedArtist + artist + " "
 		}
-		album := model.Album{Id: id, Title: k, Tracks: v, Artist: combinedArtist}
+		album := Album{Id: id, Title: k, Tracks: v, Artist: combinedArtist}
 		id++
 		lib.AlbumsByTitle[k] = album
 		lib.AlbumsById[album.Id] = album
