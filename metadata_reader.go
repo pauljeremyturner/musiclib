@@ -1,8 +1,7 @@
-package reader
+package main
 
 import (
 	"github.com/dhowden/tag"
-	"github.com/pauljeremyturner/musiclib/model"
 	"io/ioutil"
 	"log"
 	"os"
@@ -13,28 +12,27 @@ import (
 )
 
 type metaDataState struct {
-	tracks       []model.Track
-	trackChan    chan []model.Track
+	tracks       []Track
+	trackChan    chan []Track
 	waitGroupIn  *sync.WaitGroup
 	waitGroupOut *sync.WaitGroup
 	id           uint32
 }
 
 type MetaDataReader interface {
-	ReadMetaData(path string) []model.Track
+	ReadMetaData(path string) []Track
 }
 
 func NewMetaDataReader() MetaDataReader {
 	return &metaDataState{
-		tracks:       []model.Track{},
-		trackChan:    make(chan []model.Track, 100),
+		tracks:       []Track{},
+		trackChan:    make(chan []Track, 100),
 		waitGroupIn:  &sync.WaitGroup{},
 		waitGroupOut: &sync.WaitGroup{},
 	}
 }
 
-
-func (r *metaDataState) ReadMetaData(path string) []model.Track  {
+func (r *metaDataState) ReadMetaData(path string) []Track {
 
 	_ = filepath.Walk(path, r.visit)
 
@@ -73,7 +71,7 @@ func (r *metaDataState) fork(path string) {
 
 	defer r.waitGroupIn.Done()
 
-	ts := []model.Track{}
+	ts := []Track{}
 
 	for _, fileinfo := range files {
 		filename := filepath.Join(path, fileinfo.Name())
@@ -96,9 +94,9 @@ func (r *metaDataState) fork(path string) {
 			atomic.AddUint32(&r.id, 1)
 			id_int := int(r.id)
 
-			t := model.Track{
+			t := Track{
 				Id: id_int, Title: m.Title(), Album: m.Album(), Artist: m.Artist(),
-				TrackNumber: model.TrackNumber{trackIndex, trackTotal},
+				TrackNumber: TrackNumber{trackIndex, trackTotal},
 				AlbumArtist: m.AlbumArtist(), Composer: m.Composer(), FilePath: filepath.Join(path, filename),
 			}
 

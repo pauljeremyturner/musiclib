@@ -1,7 +1,6 @@
-package reader
+package main
 
 import (
-	"github.com/pauljeremyturner/musiclib/model"
 	"gotest.tools/v3/assert"
 	"path/filepath"
 	"runtime"
@@ -12,30 +11,28 @@ var (
 	_, b, _, _ = runtime.Caller(0)
 
 	// 'testdata'' folder of this project
-	testDataDirectory = filepath.Join(filepath.Dir(b), "..", "testdata")
-	testTracks        []model.Track
-	library           model.Library
+	testDataDirectory = filepath.Join(filepath.Dir(b), "testdata")
+	metaTestTracks    []Track
+	metaTestLibrary   Library
 
-	flacTrack model.Track
-	mp3Track  model.Track
-	oggTrack  model.Track
+	flacTrack Track
+	mp3Track  Track
+	oggTrack  Track
 )
 
-func TestMain(m *testing.M) {
+func init() {
 	setupMetaDataTest()
-
-	m.Run()
 }
 
 func setupMetaDataTest() {
 
 	md := NewMetaDataReader()
 
-	testTracks = md.ReadMetaData(testDataDirectory)
+	metaTestTracks = md.ReadMetaData(testDataDirectory)
 
-	titlemap := make(map[string]model.Track)
+	titlemap := make(map[string]Track)
 
-	for _, t := range testTracks {
+	for _, t := range metaTestTracks {
 		titlemap[t.Title] = t
 	}
 
@@ -73,4 +70,3 @@ func TestShouldReadATrackMetadataFromFiles(t *testing.T) {
 	assert.Equal(t, mp3Track.TrackNumber.TrackIndex, 2)
 	assert.Equal(t, oggTrack.TrackNumber.TrackIndex, 3)
 }
-

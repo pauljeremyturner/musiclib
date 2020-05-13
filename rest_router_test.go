@@ -4,19 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/pauljeremyturner/musiclib/model"
-	"github.com/pauljeremyturner/musiclib/processor"
-	"github.com/pauljeremyturner/musiclib/reader"
 	"gotest.tools/assert"
 	"io/ioutil"
 	"net/http"
 	"testing"
 )
 
-func TestMain(m *testing.M) {
+func init() {
 
 	responseWriter.header = make(map[string][]string)
-	var metaDataProcessor = processor.NewMetaDataProcessor()
+	var metaDataProcessor = NewMetaDataProcessor()
 	mockMetaDataReader := newMockMedaDataReader()
 
 	rr = NewRestRouter(mockMetaDataReader, metaDataProcessor)
@@ -28,18 +25,17 @@ func TestMain(m *testing.M) {
 
 	rr.LoadLibrary(responseWriter, request)
 
-	m.Run()
 }
 
-func getTestTrackData() []model.Track {
+func getTestTrackData() []Track {
 
-	testTracks := []model.Track{}
+	testTracks := []Track{}
 	for i := 0; i < 10; i++ {
-		t := model.Track{
+		t := Track{
 			Id:          i,
 			Title:       fmt.Sprintf("Track Title %2d", i),
 			Artist:      "artist",
-			TrackNumber: model.TrackNumber{TrackIndex: i, TrackTotal: 10},
+			TrackNumber: TrackNumber{TrackIndex: i, TrackTotal: 10},
 			Album:       "album",
 			AlbumArtist: "",
 			Composer:    "",
@@ -50,16 +46,16 @@ func getTestTrackData() []model.Track {
 	return testTracks
 }
 
-func newMockMedaDataReader() reader.MetaDataReader {
-	return &mockMetaDataReader{tracks: []model.Track{}}
+func newMockMedaDataReader() MetaDataReader {
+	return &mockMetaDataReader{tracks: []Track{}}
 }
 
 type mockResponseWriter struct {
-	header       http.Header
+	header http.Header
 }
 
 type mockMetaDataReader struct {
-	tracks []model.Track
+	tracks []Track
 }
 
 func (mrw mockResponseWriter) Header() http.Header {
@@ -75,8 +71,7 @@ func (mrw mockResponseWriter) Write(data []byte) (int, error) {
 	return len(data), nil
 }
 
-func (mmdr mockMetaDataReader) ReadMetaData(path string) []model.Track {
-
+func (mmdr mockMetaDataReader) ReadMetaData(path string) []Track {
 
 	testTracks := getTestTrackData
 	mmdr.tracks = testTracks()
@@ -97,9 +92,8 @@ func TestGetAlbumByIdRespondsWithCorrectJson(t *testing.T) {
 
 	rr.GetAlbum(responseWriter, request)
 
-	gotAlbum := &model.Album{}
+	gotAlbum := &Album{}
 	json.Unmarshal(capturedData, gotAlbum)
-
 
 	fmt.Println(gotAlbum)
 	//add asserts here
@@ -114,7 +108,7 @@ func TestGetLibraryRespondsWithCorrectJson(t *testing.T) {
 
 	rr.GetLibrary(responseWriter, request)
 
-	gotLibrary := &model.Library{}
+	gotLibrary := &Library{}
 
 	json.Unmarshal(capturedData, gotLibrary)
 
