@@ -26,7 +26,7 @@ func init() {
 
 func setupMetaDataTest() {
 
-	md := NewMetaDataReader()
+	md := NewMetaDataReader(NewDatabase())
 
 	metaTestTracks = md.ReadMetaData(testDataDirectory)
 
