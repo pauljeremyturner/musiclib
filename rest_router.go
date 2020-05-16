@@ -2,24 +2,21 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
-
-	"github.com/gorilla/mux"
 )
 
 type restRouterState struct {
 	mdr MetaDataReader
-	mdp MetaDataProcessor
-	lib Library
+	mdb musicDatabase
 }
 
-func NewRestRouter(inMd MetaDataReader, inMdp MetaDataProcessor) RestRouter {
+func NewRestRouter(mdr MetaDataReader, mdb musicDatabase) RestRouter {
 	return &restRouterState{
-		mdr: inMd,
-		mdp: inMdp,
+		mdr: mdr,
+		mdb: mdb,
 	}
 }
 
@@ -27,7 +24,7 @@ type RestRouter interface {
 	RestRouter()
 	LoadLibrary(writer http.ResponseWriter, request *http.Request)
 	GetLibrary(writer http.ResponseWriter, request *http.Request)
-	GetAlbum(writer http.ResponseWriter, request *http.Request)
+	GetAlbumById(writer http.ResponseWriter, request *http.Request)
 }
 
 func (r *restRouterState) RestRouter() {
@@ -39,7 +36,11 @@ func (r *restRouterState) RestRouter() {
 	libraryRouter := router.PathPrefix("/librarys").Subrouter()
 
 	albumRouter.
-		HandleFunc("/{albumid}", r.GetAlbum).
+		HandleFunc("/{albumid}", r.GetAlbumById).
+		Methods("GET").Schemes("http")
+
+	albumRouter.
+		HandleFunc("/{albumid}/tracks", r.GetTracksByAlbum).
 		Methods("GET").Schemes("http")
 
 	trackRouter.
@@ -61,7 +62,9 @@ func (r *restRouterState) RestRouter() {
 }
 
 func (r *restRouterState) GetLibrary(writer http.ResponseWriter, request *http.Request) {
-	bytes, _ := json.Marshal(r.lib)
+
+	tracks, _ := r.mdb.LoadTracks()
+	bytes, _ := json.Marshal(tracks)
 
 	writer.Header().Add("Content-Type", "application/json")
 	writer.WriteHeader(http.StatusOK)
@@ -91,27 +94,42 @@ func (r *restRouterState) LoadLibrary(writer http.ResponseWriter, request *http.
 	} else {
 		log.Printf("Loading music from %s", requestBody.Path)
 
-		tracks := r.mdr.ReadMetaData(requestBody.Path)
-
-		library := r.mdp.TransformMetaData(tracks)
-
-		r.lib = library
+		r.mdr.ReadMetaData(requestBody.Path)
 
 		writer.WriteHeader(http.StatusAccepted)
 	}
 }
 
-func (r *restRouterState) GetTrack(writer http.ResponseWriter, request *http.Request) {
+func (r *restRouterState) GetTracksByAlbum(writer http.ResponseWriter, request *http.Request) {
 	params := mux.Vars(request)
-	i, paramErr := strconv.Atoi(params["trackid"])
-
-	if paramErr != nil {
+	albumid, ok := params["albumid"]; if !ok {
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	albumId := int(i)
-	if album, ok := r.lib.AlbumsById[albumId]; ok {
+
+
+	tracks, ok := r.mdb.LoadTracksByAlbumId(albumid); if ok {
+		bytes, err := json.Marshal(tracks)
+
+		if err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+		} else {
+			writer.Header().Add("Content-Type", "application/json")
+			writer.WriteHeader(http.StatusOK)
+			writer.Write(bytes)
+		}
+	} else {
+		writer.WriteHeader(http.StatusNotFound)
+	}
+}
+
+func (r *restRouterState) GetTrack(writer http.ResponseWriter, request *http.Request) {
+	params := mux.Vars(request)
+	trackid := params["trackid"]
+
+
+	if album, ok := r.mdb.LoadTracksById(trackid); ok {
 		bytes, err := json.Marshal(album)
 
 		if err != nil {
@@ -126,17 +144,13 @@ func (r *restRouterState) GetTrack(writer http.ResponseWriter, request *http.Req
 	}
 }
 
-func (r *restRouterState) GetAlbum(writer http.ResponseWriter, request *http.Request) {
+func (r *restRouterState) GetAlbumById(writer http.ResponseWriter, request *http.Request) {
 	params := mux.Vars(request)
-	i, paramErr := strconv.Atoi(params["albumid"])
+	albumid := params["albumid"]
 
-	if paramErr != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		return
-	}
 
-	trackId := int(i)
-	if track, ok := r.lib.TracksById[trackId]; ok {
+
+	if track, ok := r.mdb.LoadAlbumById(albumid); ok {
 		bytes, err := json.Marshal(track)
 
 		if err != nil {
