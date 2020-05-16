@@ -20,7 +20,7 @@ This is my first golang project.  I wanted to use what I have learned including
 It's not finished, I would like to add integration testing via running a docker compose of the app and sending it web requests.  Surely there is a framework for mocking http requests etc rather than hand coding mock reqtests and output buffers.  
 
 
-# How does it work?
+## How does it work?
 This is a *fork-join* process.
 fork - for each directory, extract the music metadata
 join - for all the track metadata objects, combine these into a set of Albums
@@ -28,13 +28,32 @@ join - for all the track metadata objects, combine these into a set of Albums
 Anticipating this process to be I/O bound, a set of directories - suspected as each being an album is extracted.
 For each directory a goroutine is executed which send the Track metadata objects to a channel.
 
-# How do I run this?
+## How do I run this?
 
 The program expects you music files to be in `~/Music` as this is where I keep my music  on my Fedora system.  You can provide a override directory if your music files are not in this directory.
 
 run the file `main.go`, the music metadata json file will be saved in the same directory s where music is located.
 
-# ReST api
+## Graphql api
+
+Try this for an example
+
+```
+query {
+  album(id: "JohnWilliamsPlaysBach") {
+    id
+    title
+    artist
+    tracks {
+      id
+      title
+      filePath
+    }
+  }
+}
+```
+
+## ReST api
 
 The api uses an in-memory representation of the music library.
 
