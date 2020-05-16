@@ -25,7 +25,7 @@ type metaDataReader struct {
 var unknownCounter uint64
 
 type MetaDataReader interface {
-	ReadMetaData(path string) []Track
+	ReadMetaData(path string) error
 }
 
 func NewMetaDataReader(mdb musicDatabase) MetaDataReader {
@@ -38,16 +38,19 @@ func NewMetaDataReader(mdb musicDatabase) MetaDataReader {
 	}
 }
 
-func (r *metaDataReader) ReadMetaData(path string) []Track {
+func (r *metaDataReader) ReadMetaData(path string) error {
 
-	_ = filepath.Walk(path, r.visit)
+	err := filepath.Walk(path, r.visit)
+	if err != nil {
+		return err
+	}
 
 	go r.storeMusicFiles()
 	r.waitGroupIn.Wait()
 	close(r.trackChan)
 	r.waitGroupOut.Wait()
 
-	return r.tracks
+	return nil
 }
 
 func (r *metaDataReader) visit(path string, info os.FileInfo, err error) error {

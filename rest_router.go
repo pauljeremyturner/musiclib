@@ -94,9 +94,13 @@ func (r *restRouterState) LoadLibrary(writer http.ResponseWriter, request *http.
 	} else {
 		log.Printf("Loading music from %s", requestBody.Path)
 
-		r.mdr.ReadMetaData(requestBody.Path)
+		err := r.mdr.ReadMetaData(requestBody.Path)
 
-		writer.WriteHeader(http.StatusAccepted)
+		if err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+		} else {
+			writer.WriteHeader(http.StatusAccepted)
+		}
 	}
 }
 
