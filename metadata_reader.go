@@ -15,12 +15,11 @@ import (
 )
 
 type metaDataReader struct {
-	tracks       []Track
-	trackChan    chan []*Track
-	waitGroupIn  *sync.WaitGroup
-	waitGroupOut *sync.WaitGroup
-	id           uint32
-	mdb musicDatabase
+	tracks      []Track
+	trackChan   chan []*Track
+	wg          *sync.WaitGroup
+	id          uint32
+	mdb         musicDatabase
 }
 var unknownCounter uint64
 
@@ -30,11 +29,10 @@ type MetaDataReader interface {
 
 func NewMetaDataReader(mdb musicDatabase) MetaDataReader {
 	return &metaDataReader{
-		tracks:       make([]Track, 0),
-		trackChan:    make(chan []*Track, 100),
-		waitGroupIn:  &sync.WaitGroup{},
-		waitGroupOut: &sync.WaitGroup{},
-		mdb: mdb,
+		tracks:    make([]Track, 0),
+		trackChan: make(chan []*Track, 100),
+		wg:        &sync.WaitGroup{},
+		mdb:       mdb,
 	}
 }
 
@@ -46,9 +44,8 @@ func (r *metaDataReader) ReadMetaData(path string) error {
 	}
 
 	go r.storeMusicFiles()
-	r.waitGroupIn.Wait()
+	r.wg.Wait()
 	close(r.trackChan)
-	r.waitGroupOut.Wait()
 
 	return nil
 }
@@ -56,8 +53,7 @@ func (r *metaDataReader) ReadMetaData(path string) error {
 func (r *metaDataReader) visit(path string, info os.FileInfo, err error) error {
 
 	if info.IsDir() && isMusicDir(info.Name()) {
-		r.waitGroupIn.Add(1)
-		r.waitGroupOut.Add(1)
+		r.wg.Add(1)
 
 		go r.readMusicFilesInDir(path)
 	} else {
@@ -78,10 +74,13 @@ func (r *metaDataReader) readMusicFilesInDir(path string) {
 		return
 	}
 
-	defer r.waitGroupIn.Done()
 
 	ts := make([]*Track, 0)
-	alphanumeric, _ := regexp.Compile("[^a-zA-Z0-9]+")
+	alphanumeric, err := regexp.Compile("[^a-zA-Z0-9]+")
+
+	if err != nil {
+		panic ("incorrect regex to index track names")
+	}
 
 	for _, fileinfo := range files {
 		filename := filepath.Join(path, fileinfo.Name())
@@ -156,7 +155,7 @@ func (r *metaDataReader) storeMusicFiles() {
 
 
 		r.mdb.StoreTracks(tracks)
-		r.waitGroupOut.Done()
+		r.wg.Done()
 	}
 
 }

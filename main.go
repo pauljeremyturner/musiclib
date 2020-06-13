@@ -8,7 +8,6 @@ func main() {
 
 	runtime.GOMAXPROCS(4)
 
-
 	database := NewDatabase()
 
 	mdr := NewMetaDataReader(database)

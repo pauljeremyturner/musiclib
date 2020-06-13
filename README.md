@@ -16,8 +16,9 @@ This is my first golang project.  I wanted to use what I have learned including
 - modules
 - the go tooling for test covereage
 - a dockerised go app
+- Hashicorp's go-memdb
 
-It's not finished, I would like to add integration testing via running a docker compose of the app and sending it web requests.  Surely there is a framework for mocking http requests etc rather than hand coding mock reqtests and output buffers.  
+It's not finished, I would like to add integration testing via running a docker compose of the app and sending it web requests.  I think the types can be tidied: there probably isn't any need for the metadata processor- it could all go in to the constructor of Library, I probably ignore some errors coming out of I/O calls and surely there is a framework for mocking http requests etc rather than hand coding mock reqtests and output buffers.  
 
 
 ## How does it work?
@@ -28,11 +29,11 @@ join - for all the track metadata objects, combine these into a set of Albums
 Anticipating this process to be I/O bound, a set of directories - suspected as each being an album is extracted.
 For each directory a goroutine is executed which send the Track metadata objects to a channel.
 
-## How do I run this?
+## How do I use this?
 
 The program expects you music files to be in `~/Music` as this is where I keep my music  on my Fedora system.  You can provide a override directory if your music files are not in this directory.
 
-run the file `main.go`, the music metadata json file will be saved in the same directory s where music is located.
+run the file `main.go`, then call the `librarys` POST method, supplying a folder where your music is located.
 
 ## Graphql api
 
@@ -55,7 +56,7 @@ query {
 
 ## ReST api
 
-The api uses an in-memory representation of the music library.
+The api uses an in-memory representation of the music library which is stored in a go-memdb database.
 
 These are the resources:
 

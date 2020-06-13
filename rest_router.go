@@ -64,11 +64,16 @@ func (r *restRouterState) RestRouter() {
 func (r *restRouterState) GetLibrary(writer http.ResponseWriter, request *http.Request) {
 
 	tracks, _ := r.mdb.LoadTracks()
-	bytes, _ := json.Marshal(tracks)
+	bytes, err := json.Marshal(tracks)
 
-	writer.Header().Add("Content-Type", "application/json")
-	writer.WriteHeader(http.StatusOK)
-	writer.Write(bytes)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+	} else {
+		
+		writer.Header().Add("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+		writer.Write(bytes)
+	}
 }
 
 func (r *restRouterState) LoadLibrary(writer http.ResponseWriter, request *http.Request) {
